@@ -42,14 +42,15 @@ public class Solution {
         List<Thread> threads = new ArrayList<>();
         int rows = a.length;
         int cols = a[0].length;
-        if(threadNum > rows) threadNum = rows;
-
-        int rowsPerThread = rows/threadNum;
+        if(threadNum > rows) {
+            threadNum = rows;
+        }
 
         int[][] result = new int[rows][cols];
-        for(int row = 0; row<rows; row+=rowsPerThread) {
-            int lastRow = Math.min(rows, row+rowsPerThread);
-            Thread thread = createThread(a, b, k, result, row, lastRow);
+        for(int i = 0; i<threadNum; i++) {
+            int startRow = (i * rows) / threadNum;
+            int endRow = ((i + 1) * rows) / threadNum;
+            Thread thread = createThread(a, b, k, result, startRow, endRow);
             thread.start();
             threads.add(thread);
         }
