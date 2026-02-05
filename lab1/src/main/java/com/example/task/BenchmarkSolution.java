@@ -42,6 +42,6 @@ public class BenchmarkSolution {
 
     @Benchmark
     public void testParallel(ParallelParams p, Blackhole bh) {
-        bh.consume(solution.executeParallel(matrixA, matrixB, 5, p.threadNum));
+        bh.consume(solution.executeParallel(matrixA, matrixB, k, p.threadNum));
     }
 }
