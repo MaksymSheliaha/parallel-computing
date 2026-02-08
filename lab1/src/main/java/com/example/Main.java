@@ -1,24 +1,54 @@
 package com.example;
 
-import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.BenchmarkMode;
-import org.openjdk.jmh.annotations.Fork;
-import org.openjdk.jmh.annotations.Mode;
+
+
+import com.example.task.CustomBenchmark;
+import com.example.task.Solution;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+//        Solution solution = new Solution();
+//        var matrixA = solution.generateMatrix(10000);
+//        var matrixB = solution.generateMatrix(10000);
+//        int k = 5;
+//        System.out.println("Matrix A:");
+//        prettyPrint(matrixA);
+//        System.out.println("Matrix B:");
+//        prettyPrint(matrixB);
+
+//        var result = solution.executeSequentially(matrixA, matrixB, k);
+
+//        System.out.println(" ------------------ \n Matrix result:");
+//
+//        prettyPrint(result);
+//
+//        System.out.println("Matrix A:");
+//        prettyPrint(matrixA);
+//        System.out.println("Matrix B:");
+//        prettyPrint(matrixB);
+
+
+//        System.out.println(" ------------------ \n Matrix result:");
+
+
+//        var parallelResult = solution.executeParallel(matrixA, matrixB, k, 64);
+//        System.out.println(Arrays.deepToString(parallelResult));
+//
+//
+//        CustomBenchmark benchmark = new CustomBenchmark(solution);
+//
+//        benchmark.run();
+
+
         org.openjdk.jmh.Main.main(args);
     }
 
-    @Benchmark
-    @BenchmarkMode(Mode.AverageTime)
-    @Fork(value = 5, warmups = 5)
-    public void init() {
-        // Do nothing
-        int i = 10;
-        int j = 2005;
-        int c = i+j;
+    public static void prettyPrint(int[][] matrix){
+        for (int[] row:matrix){
+            System.out.println(Arrays.toString(row));
+        }
     }
 }
