@@ -39,7 +39,7 @@ public class Solution {
         if(a==null || b==null || a.length!=b.length || a.length<1) throw new IllegalArgumentException();
         if(threadNum < 1) throw new IllegalArgumentException();
 
-        List<Thread> threads = new ArrayList<>();
+        List<Thread> threads = new ArrayList<>(threadNum);
         int rows = a.length;
         int cols = a[0].length;
         if(threadNum > rows) {

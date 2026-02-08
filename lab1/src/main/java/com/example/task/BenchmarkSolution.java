@@ -7,18 +7,18 @@ import java.util.concurrent.TimeUnit;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
-@Warmup(iterations = 3, time = 1)
+@Warmup(iterations = 5, time = 1)
 @Measurement(iterations = 5, time = 1)
 @Fork(1)
 @State(Scope.Benchmark)
 public class BenchmarkSolution {
 
-    @Param({"10000"})
+    @Param({"1000", "5000", "10000"})
     private int size;
 
     @State(Scope.Thread)
     public static class ParallelParams {
-        @Param({"2", "4", "8", "16", "32","64"})
+        @Param({"1", "2", "4", "8", "16", "32","64", "128", "256"})
         public int threadNum;
     }
 
@@ -36,12 +36,12 @@ public class BenchmarkSolution {
     }
 
     @Benchmark
-    public void testSequential(Blackhole bh) {
-        bh.consume(solution.executeSequentially(matrixA, matrixB, k));
+    public void testSequential() {
+        solution.executeSequentially(matrixA, matrixB, k);
     }
 
     @Benchmark
-    public void testParallel(ParallelParams p, Blackhole bh) {
-        bh.consume(solution.executeParallel(matrixA, matrixB, k, p.threadNum));
+    public void testParallel(ParallelParams p) {
+        solution.executeParallel(matrixA, matrixB, k, p.threadNum);
     }
 }
