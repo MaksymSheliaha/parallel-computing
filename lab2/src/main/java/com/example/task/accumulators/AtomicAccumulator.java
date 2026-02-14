@@ -1,44 +1,43 @@
 package com.example.task.accumulators;
 
+import com.example.task.Result;
+
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AtomicAccumulator implements Accumulator{
 
     private final AtomicInteger atomicCounter;
-    private final AtomicInteger atomicMax;
+    private final AtomicReference<Integer> atomicMax;
 
     public AtomicAccumulator(){
         this.atomicCounter = new AtomicInteger(0);
-        this.atomicMax = new AtomicInteger(Integer.MIN_VALUE);
+        this.atomicMax = new AtomicReference<>();
     }
 
     @Override
     public void increaseCounter() {
-        boolean out;
+        int prev;
         do {
-            int prev = atomicCounter.get();
-            out = atomicCounter.compareAndSet(prev, ++prev);
-        } while (!out);
-    }
-
-    @Override
-    public int getCount() {
-        return atomicCounter.get();
+            prev = atomicCounter.get();
+        } while (!atomicCounter.compareAndSet(prev, ++prev));
     }
 
     @Override
     public void trySetMax(int value) {
-        boolean out = true;
+        boolean out;
+        Integer prevMax;
         do {
-            int prevMax = atomicMax.get();
-            if(prevMax < value){
+            out = true;
+            prevMax = atomicMax.get();
+            if(prevMax==null || prevMax < value){
                 out = atomicMax.compareAndSet(prevMax, value);
             }
         } while (!out);
     }
 
     @Override
-    public Integer getMax() {
-        return atomicMax.get();
+    public Result getResult() {
+        return new Result(atomicCounter.getAndSet(0), atomicMax.getAndSet(null));
     }
 }

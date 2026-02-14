@@ -1,8 +1,9 @@
 package com.example.task.accumulators;
 
+import com.example.task.Result;
+
 public interface Accumulator {
     void increaseCounter();
-    int getCount();
     void trySetMax(int value);
-    Integer getMax();
+    Result getResult();
 }

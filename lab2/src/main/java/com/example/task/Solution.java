@@ -1,80 +1,79 @@
 package com.example.task;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.example.task.accumulators.Accumulator;
+
 import java.util.Random;
 
-// Task: C = A + k*B
 public class Solution {
 
-    public int[][] generateMatrix(int size){
-        Random random = new Random();
-        var matrix = new int[size][size];
+    private static int[][] matrix;
 
+    public int[][] getMatrix(int size){
+        if(matrix!=null && matrix.length==size) return matrix;
+
+        Random random = new Random();
+        matrix = new int[size][size];
         for(int[] row: matrix){
             for(int i = 0; i<row.length;i++){
-                row[i] = random.nextInt(100);
+                row[i] = random.nextInt();
             }
         }
+        System.out.println("New matrix has been generated");
         return matrix;
     }
 
-    public int[][] executeSequentially(int[][] a, int[][] b, int k) {
-        if(a==null || b==null || a.length!=b.length || a.length<1) throw new IllegalArgumentException();
-        int rows = a.length;
-        int cols = a[0].length;
-
-        int[][] result = new int[rows][cols];
-
-        for(int i = 0; i<rows; i++){
-            for(int j = 0; j<cols; j++){
-                result[i][j] = a[i][j] + k*b[i][j];
+    public Result executeSequentially(int[][] matrix) {
+        int counter = 0;
+        Integer max = null;
+        for(int[] row: matrix){
+            for(int el: row){
+                if(el>10){
+                    counter++;
+                    if(max==null || max <el){
+                        max = el;
+                    }
+                }
             }
         }
-
-        return result;
+        return new Result(counter, max);
     }
 
-    public int[][] executeParallel(int[][] a, int[][] b, int k, int threadNum){
-        if(a==null || b==null || a.length!=b.length || a.length<1) throw new IllegalArgumentException();
-        if(threadNum < 1) throw new IllegalArgumentException();
-
-        List<Thread> threads = new ArrayList<>(threadNum);
-        int rows = a.length;
-        int cols = a[0].length;
+    public Result executeParallel(int[][] matrix, Accumulator accumulator, int threadNum){
+        int rows = matrix.length;
         if(threadNum > rows) {
             threadNum = rows;
         }
 
-        int[][] result = new int[rows][cols];
+        Thread[] threads = new Thread[threadNum];
         for(int i = 0; i<threadNum; i++) {
             int startRow = (i * rows) / threadNum;
             int endRow = ((i + 1) * rows) / threadNum;
-            Thread thread = createThread(a, b, k, result, startRow, endRow);
+            Thread thread = createThread(matrix, accumulator, startRow, endRow);
             thread.start();
-            threads.add(thread);
+            threads[i] = thread;
         }
 
-        threads.forEach(t-> {
+        for(Thread thread: threads){
             try {
-                t.join();
-            } catch (InterruptedException e) {
+                thread.join();
+            } catch (InterruptedException e){
                 throw new RuntimeException(e);
             }
-        });
+        }
 
-        return result;
+        return accumulator.getResult();
     }
 
-    private Thread createThread(int[][] a, int[][] b, int k, int[][] buffer,  final int firstRow, final int lastRow){
+    private Thread createThread(int[][] matrix, Accumulator accumulator,  final int firstRow, final int lastRow){
         return new Thread(()->{
-            int cols = buffer[firstRow].length;
             for(int i = firstRow; i<lastRow; i++){
-                for(int j = 0; j<cols; j++){
-                    buffer[i][j] = a[i][j] + k*b[i][j];
+                for(int el: matrix[i]){
+                    if(el>10){
+                        accumulator.increaseCounter();
+                        accumulator.trySetMax(el);
+                    }
                 }
             }
         });
     }
-
 }

@@ -1,5 +1,7 @@
 package com.example.task.accumulators;
 
+import com.example.task.Result;
+
 public class BlockingAccumulator implements Accumulator {
 
     private int counter;
@@ -19,11 +21,6 @@ public class BlockingAccumulator implements Accumulator {
     }
 
     @Override
-    public int getCount() {
-        return counter;
-    }
-
-    @Override
     public void trySetMax(int value) {
         synchronized (maxMonitor){
             if(max==null || max<value){
@@ -33,7 +30,13 @@ public class BlockingAccumulator implements Accumulator {
     }
 
     @Override
-    public Integer getMax() {
-        return max;
+    public Result getResult() {
+        int count = counter;
+        Integer foundMax = max;
+        this.counter = 0;
+        this.max = null;
+
+        return new Result(count, foundMax);
     }
+
 }
