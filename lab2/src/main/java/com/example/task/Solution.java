@@ -76,4 +76,49 @@ public class Solution {
             }
         });
     }
+
+    public Result executeParallelOptimized(int[][] matrix, Accumulator accumulator, int threadNum){
+        int rows = matrix.length;
+        if(threadNum > rows) {
+            threadNum = rows;
+        }
+
+        Thread[] threads = new Thread[threadNum];
+        for(int i = 0; i<threadNum; i++) {
+            int startRow = (i * rows) / threadNum;
+            int endRow = ((i + 1) * rows) / threadNum;
+            Thread thread = createOptimizedThread(matrix, accumulator, startRow, endRow);
+            thread.start();
+            threads[i] = thread;
+        }
+
+        for(Thread thread: threads){
+            try {
+                thread.join();
+            } catch (InterruptedException e){
+                throw new RuntimeException(e);
+            }
+        }
+
+        return accumulator.getResult();
+    }
+
+    private Thread createOptimizedThread(int[][] matrix, Accumulator accumulator,  final int firstRow, final int lastRow){
+        return new Thread(()->{
+            int counter = 0;
+            Integer max = null;
+            for(int i = firstRow; i<lastRow; i++){
+                for(int el: matrix[i]){
+                    if(el>10){
+                        counter++;
+                        if(max==null || max <el){
+                            max = el;
+                        }
+                    }
+                }
+            }
+            accumulator.addToCounter(counter);
+            if(max!=null) accumulator.trySetMax(max);
+        });
+    }
 }

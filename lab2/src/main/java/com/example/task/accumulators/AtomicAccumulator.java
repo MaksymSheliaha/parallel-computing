@@ -20,7 +20,15 @@ public class AtomicAccumulator implements Accumulator{
         int prev;
         do {
             prev = atomicCounter.get();
-        } while (!atomicCounter.compareAndSet(prev, ++prev));
+        } while (!atomicCounter.compareAndSet(prev, prev+1));
+    }
+
+    @Override
+    public void addToCounter(int value) {
+        int prev;
+        do {
+            prev = atomicCounter.get();
+        } while (!atomicCounter.compareAndSet(prev, prev+value));
     }
 
     @Override

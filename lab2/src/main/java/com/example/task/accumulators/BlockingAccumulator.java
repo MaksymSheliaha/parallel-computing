@@ -4,39 +4,66 @@ import com.example.task.Result;
 
 public class BlockingAccumulator implements Accumulator {
 
-    private int counter;
-    private Integer max;
-    private final Object maxMonitor;
+    private Counter counter;
+    private MaxStorer max;
 
     public BlockingAccumulator(){
-        this.counter=0;
-        this.max=null;
-        this.maxMonitor = new Object();
+        this.counter=new Counter();
+        this.max=new MaxStorer();
     }
 
 
     @Override
-    public synchronized void increaseCounter() {
-        counter++;
+    public void increaseCounter() {
+        counter.incrementCounter();
+    }
+
+    @Override
+    public synchronized void addToCounter(int value) {
+        counter.addToCounter(value);
     }
 
     @Override
     public void trySetMax(int value) {
-        synchronized (maxMonitor){
-            if(max==null || max<value){
-                max = value;
-            }
-        }
+        max.trySetMax(value);
     }
 
     @Override
     public Result getResult() {
-        int count = counter;
-        Integer foundMax = max;
-        this.counter = 0;
-        this.max = null;
+        Result result = new Result(counter.getCounter(), max.getMax());
+        counter = new Counter();
+        max = new MaxStorer();
+        return result;
+    }
 
-        return new Result(count, foundMax);
+    private static class Counter{
+        private int counter = 0;
+
+        public synchronized void incrementCounter(){
+            counter++;
+        }
+
+        public synchronized void addToCounter(int value) {
+            counter+=value;
+        }
+
+        public int getCounter(){
+            return counter;
+        }
+    }
+
+    private static class MaxStorer{
+        private Integer max = null;
+
+        public synchronized void trySetMax(int value) {
+            if(max==null || max<value){
+                max = value;
+            }
+        }
+
+        public Integer getMax(){
+            return max;
+        }
     }
 
 }

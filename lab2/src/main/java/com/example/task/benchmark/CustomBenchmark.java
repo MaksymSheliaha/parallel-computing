@@ -7,7 +7,6 @@ import com.example.task.accumulators.AtomicAccumulator;
 import com.example.task.accumulators.BlockingAccumulator;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -47,6 +46,19 @@ public class CustomBenchmark {
                         return solution.executeParallel(matrix, accumulator, threads);
                     });
                     System.out.printf("Parallel avg time for size=%d accumulatorType=\"%s\" threadNum=%d is %.2f ms %n", size, type,  threads, time / 1_000_000);
+                }
+            }
+
+            for(String type:accumulatorType){
+                for (int threads : threadNum) {
+                    time = bench(() -> {
+                        Accumulator accumulator = switch (type) {
+                            case "atomic" -> new AtomicAccumulator();
+                            default -> new BlockingAccumulator();
+                        };
+                        return solution.executeParallelOptimized(matrix, accumulator, threads);
+                    });
+                    System.out.printf("Optimized parallel avg time for size=%d accumulatorType=\"%s\" threadNum=%d is %.2f ms %n", size, type, threads, time / 1_000_000);
                 }
             }
         }
