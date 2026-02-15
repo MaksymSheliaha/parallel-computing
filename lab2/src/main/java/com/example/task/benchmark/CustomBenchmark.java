@@ -1,0 +1,87 @@
+package com.example.task.benchmark;
+
+import com.example.task.Result;
+import com.example.task.Solution;
+import com.example.task.accumulators.Accumulator;
+import com.example.task.accumulators.AtomicAccumulator;
+import com.example.task.accumulators.BlockingAccumulator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+public class CustomBenchmark {
+
+    private int[][] matrix;
+    private final Solution solution;
+    private final int[] sizes = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+    private final int[] threadNum = {8};
+    private final String[] accumulatorType = {"atomic", "blocking"};
+
+    public CustomBenchmark(Solution solution){
+        this.solution = solution;
+    }
+
+    private void setup(int size){
+        matrix = solution.getMatrix(size);
+    }
+
+    public void run(){
+        for(int size: sizes){
+
+            setup(size);
+
+            double time = bench(()->solution.executeSequentially(matrix));
+            System.out.printf("Sequential avg time for size=%d is %.2f ms %n", size, time/1_000_000);
+            for(String type:accumulatorType){
+                for (int threads : threadNum) {
+
+                    time = bench(() -> {
+                        Accumulator accumulator = switch (type){
+                            case "atomic" -> new AtomicAccumulator();
+                            default -> new BlockingAccumulator();
+                        };
+                        return solution.executeParallel(matrix, accumulator, threads);
+                    });
+                    System.out.printf("Parallel avg time for size=%d accumulatorType=\"%s\" threadNum=%d is %.2f ms %n", size, type,  threads, time / 1_000_000);
+                }
+            }
+
+            for(String type:accumulatorType){
+                for (int threads : threadNum) {
+                    time = bench(() -> {
+                        Accumulator accumulator = switch (type) {
+                            case "atomic" -> new AtomicAccumulator();
+                            default -> new BlockingAccumulator();
+                        };
+                        return solution.executeParallelOptimized(matrix, accumulator, threads);
+                    });
+                    System.out.printf("Optimized parallel avg time for size=%d accumulatorType=\"%s\" threadNum=%d is %.2f ms %n", size, type, threads, time / 1_000_000);
+                }
+            }
+        }
+
+    }
+
+    private double bench(Supplier<Result> supplier){
+        long start, end;
+        int warmups = 5;
+        int iter = 5;
+
+        for(int i = 0; i<warmups;i++){
+            supplier.get();
+        }
+
+        List<Long> times = new ArrayList<>();
+        for(int i = 0; i<iter;i++){
+            start = System.nanoTime();
+            supplier.get();
+            end = System.nanoTime();
+            long time = end-start;
+            times.add(time);
+        }
+
+        return times.stream().map(Long::doubleValue).reduce(0., Double::sum)/iter;
+
+    }
+}
