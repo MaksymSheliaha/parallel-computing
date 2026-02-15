@@ -65,5 +65,4 @@ public class BlockingAccumulator implements Accumulator {
             return max;
         }
     }
-
 }

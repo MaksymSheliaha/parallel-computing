@@ -5,7 +5,6 @@ import com.example.task.Solution;
 import com.example.task.accumulators.Accumulator;
 import com.example.task.accumulators.AtomicAccumulator;
 import com.example.task.accumulators.BlockingAccumulator;
-import org.openjdk.jmh.infra.Blackhole;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,8 @@ public class CustomBenchmark {
 
     private int[][] matrix;
     private final Solution solution;
-    private final int[] sizes = {1000, 5000, 10000};
-    private final int[] threadNum = {2, 4, 8, 16};
+    private final int[] sizes = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+    private final int[] threadNum = {8};
     private final String[] accumulatorType = {"atomic", "blocking"};
 
     public CustomBenchmark(Solution solution){
@@ -34,7 +33,6 @@ public class CustomBenchmark {
 
             double time = bench(()->solution.executeSequentially(matrix));
             System.out.printf("Sequential avg time for size=%d is %.2f ms %n", size, time/1_000_000);
-
             for(String type:accumulatorType){
                 for (int threads : threadNum) {
 
@@ -66,20 +64,18 @@ public class CustomBenchmark {
     }
 
     private double bench(Supplier<Result> supplier){
-        Blackhole blackhole = new Blackhole("Today's password is swordfish. I understand instantiating Blackholes directly is dangerous.");
         long start, end;
-
-        int warmups = 3;
+        int warmups = 5;
         int iter = 5;
 
         for(int i = 0; i<warmups;i++){
-            blackhole.consume(supplier.get());
+            supplier.get();
         }
 
         List<Long> times = new ArrayList<>();
         for(int i = 0; i<iter;i++){
             start = System.nanoTime();
-            blackhole.consume(supplier.get());
+            supplier.get();
             end = System.nanoTime();
             long time = end-start;
             times.add(time);
