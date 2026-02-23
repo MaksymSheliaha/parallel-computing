@@ -1,42 +1,28 @@
 package com.example;
 
-import com.example.task.MyThread;
 import com.example.task.ThreadPool;
-
-import java.util.concurrent.Executors;
+import com.example.task.custom.CustomFuture;
+import com.example.task.generator.Task;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
         System.out.println("Hello world");
-        var pool = new ThreadPool(5, 10);
+        var pool = new ThreadPool(5, 5);
         pool.start();
 
         System.out.println("\nPool started\n");
-        Thread.sleep(10000);
 
-        pool.stop();
+        CustomFuture[] results = new CustomFuture[10];
+        for(int i = 0; i<10; i++){
+            var future = pool.execute(new Task(i));
+            results[i]=future;
+            //Thread.sleep(100);
+        }
 
-        System.out.println("\nPool stopped\n");
-        Thread.sleep(10000);
-
-        pool.resume();
-
-        System.out.println("\nPool resumed\n");
-        Thread.sleep(10000);
-
-
-        pool.stop();
-
-        System.out.println("\nPool stopped\n");
-        Thread.sleep(10000);
-
-        pool.resume();
-        System.out.println("\nPool stopped\n");
-
-        Thread.sleep(10000);
-//        pool.stop();
+//        for(int i = 0; i<10; i++){
+//            if(results[i]!=null) System.out.println(results[i].get());
+//        }
+        Thread.sleep(1000);
         pool.close();
-        System.out.println("Pool closed");
-
     }
 }

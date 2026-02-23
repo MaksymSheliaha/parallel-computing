@@ -1,9 +1,12 @@
 package com.example.task;
 
 
+import com.example.task.custom.CustomFuture;
+import com.example.task.custom.MyThread;
+import com.example.task.generator.Task;
+
 import java.io.Closeable;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ThreadPool implements Closeable {
 
@@ -12,8 +15,11 @@ public class ThreadPool implements Closeable {
 
     private final Thread[] threads;
     private final Queue queue;
-    private final AtomicBoolean active;
-    private volatile boolean closed;
+
+    private final Object stoppedMonitor = new Object();
+    private volatile boolean stopped = false;
+    private boolean started = false;
+    private volatile boolean closed = false;
 
 
     public ThreadPool() throws InterruptedException {
@@ -23,41 +29,65 @@ public class ThreadPool implements Closeable {
     public ThreadPool(int threadNum, int queueSize) {
         threads = new Thread[threadNum];
         queue = new Queue(queueSize);
-        active = new AtomicBoolean(false);
-        closed = false;
         for (int i = 0; i < threadNum; i++) {
             threads[i] = new MyThread(new Worker());
         }
     }
 
     public void start(){
-        if(closed) throw new IllegalStateException();
-        if(!active.get()){
-            active.set(true);
-            Arrays.stream(threads).forEach(Thread::start);
-        }
+        if(started || closed) throw new IllegalStateException();
+        started = true;
+        Arrays.stream(threads).forEach(Thread::start);
     }
 
     public void stop(){
         if(closed) throw new IllegalStateException();
-        active.set(false);
+        stopped = true;
+        synchronized (queue){
+            queue.notifyAll();
+        }
     }
 
     public void resume(){
         if(closed) throw new IllegalStateException();
-        if(!active.get()){
-            active.set(true);
-            synchronized (active){
-                active.notifyAll();
+        if(stopped){
+            synchronized (stoppedMonitor){
+                stopped = false;
+                stoppedMonitor.notifyAll();
             }
         }
     }
 
     @Override
     public void close(){
-        if(closed) throw new IllegalStateException();
+        if(closed || !started) throw new IllegalStateException();
         closed = true;
-        resume();
+        stopped = false;
+
+        synchronized (queue){
+            queue.notifyAll();
+        }
+        synchronized (stoppedMonitor){
+            stoppedMonitor.notifyAll();
+        }
+    }
+
+    public CustomFuture execute(Task task){
+        CustomFuture result;
+
+        synchronized (queue){
+            if(queue.isFull()){
+                result = null;
+                System.out.println("pool decline task #"+task.id());
+            } else {
+                result = new CustomFuture();
+                queue.push(new Work(task, result));
+                queue.notify();
+                System.out.println("pool except task #"+task.id());
+            }
+        }
+
+        return result;
     }
 
 
@@ -66,22 +96,38 @@ public class ThreadPool implements Closeable {
         @Override
         public void run() {
             while(!closed){
-                System.out.println("Thread "+Thread.currentThread().threadId()+" do sth");
-                queue.pull().run();
-                trySleep();
-            }
-        }
-
-        private void trySleep(){
-            synchronized (active){
-                if(!active.get()){
-                    System.out.println("Thread "+Thread.currentThread().threadId()+" stopped");
-                    try {
-                        active.wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                if(stopped){
+                    synchronized (stoppedMonitor){
+                        try {
+                            stoppedMonitor.wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                    System.out.println("Thread "+Thread.currentThread().threadId()+" wake up");
+                    continue;
+                }
+
+                Work work;
+                synchronized (queue){
+                    while (queue.isEmpty() && !closed){
+                        try{
+                            queue.wait();
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    if(closed) return;
+                    work = queue.pull();
+                }
+
+                if(work!=null) {
+                    try{
+                        work.run();
+                        System.out.println("pool finished task #"+work.task().id());
+                    } catch (RuntimeException e) {
+                        System.err.println("Task failed: " + work.task().id());
+                    }
                 }
             }
         }
