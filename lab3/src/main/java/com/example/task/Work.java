@@ -7,6 +7,7 @@ import com.example.task.generator.Task;
 public record Work(Task task, CustomFuture future) implements Runnable {
     @Override
     public void run() {
+        future.markStarted();
         var result = task.call();
         future.set(result);
     }

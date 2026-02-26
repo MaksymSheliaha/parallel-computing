@@ -7,8 +7,12 @@ public class CustomFuture {
     private final AtomicBoolean isReady;
     private String payload;
 
+    private final long creationTime;
+    private long startWorkingTime;
+
     public CustomFuture(){
         this.isReady = new AtomicBoolean(false);
+        this.creationTime = System.nanoTime();
     }
 
     public synchronized void set(String payload){
@@ -34,5 +38,13 @@ public class CustomFuture {
 
     public boolean isReady(){
         return isReady.get();
+    }
+
+    public void markStarted(){
+        startWorkingTime=System.nanoTime();
+    }
+
+    public long getWaitNanoTime(){
+        return startWorkingTime-creationTime;
     }
 }

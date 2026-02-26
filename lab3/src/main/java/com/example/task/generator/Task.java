@@ -3,12 +3,12 @@ package com.example.task.generator;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
-public record Task(int id) implements Callable<String> {
+public record Task(int id, int origin, int bound) implements Callable<String> {
 
     @Override
     public String call() {
         Random rand = new Random();
-        int timeout = rand.nextInt(500, 1000);
+        int timeout = rand.nextInt(origin, bound);
         int a = rand.nextInt(100);
         int b = rand.nextInt(100);
         try {

@@ -18,8 +18,9 @@ public class ThreadPool implements Closeable {
 
     private final Object stoppedMonitor = new Object();
     private volatile boolean stopped = false;
-    private boolean started = false;
+    private volatile boolean started = false;
     private volatile boolean closed = false;
+    private volatile boolean interrupted = false;
 
 
     public ThreadPool() throws InterruptedException {
@@ -58,6 +59,11 @@ public class ThreadPool implements Closeable {
         }
     }
 
+    public void closeUnsafe(){
+        interrupted=true;
+        close();
+    }
+
     @Override
     public void close(){
         if(closed || !started) throw new IllegalStateException();
@@ -70,11 +76,19 @@ public class ThreadPool implements Closeable {
         synchronized (stoppedMonitor){
             stoppedMonitor.notifyAll();
         }
+
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public CustomFuture execute(Task task){
         CustomFuture result;
-
+        if(closed) throw  new IllegalStateException();
         synchronized (queue){
             if(queue.isFull()){
                 result = null;
@@ -95,7 +109,8 @@ public class ThreadPool implements Closeable {
 
         @Override
         public void run() {
-            while(!closed){
+            while(!closed || !queue.isEmpty()) {
+                if(interrupted) break;
                 if(stopped){
                     synchronized (stoppedMonitor){
                         try {
@@ -109,7 +124,7 @@ public class ThreadPool implements Closeable {
 
                 Work work;
                 synchronized (queue){
-                    while (queue.isEmpty() && !closed){
+                    while (queue.isEmpty() && !interrupted){
                         try{
                             queue.wait();
                         } catch (InterruptedException e) {
@@ -117,19 +132,17 @@ public class ThreadPool implements Closeable {
                         }
                     }
 
-                    if(closed) return;
+                    if(interrupted) break;
                     work = queue.pull();
                 }
 
                 if(work!=null) {
-                    try{
-                        work.run();
-                        System.out.println("pool finished task #"+work.task().id());
-                    } catch (RuntimeException e) {
-                        System.err.println("Task failed: " + work.task().id());
-                    }
+                    work.run();
+                    System.out.println("pool finished task #"+work.task().id());
                 }
             }
+
+            System.out.printf("Thread %d closed\n", Thread.currentThread().threadId());
         }
     }
 }
