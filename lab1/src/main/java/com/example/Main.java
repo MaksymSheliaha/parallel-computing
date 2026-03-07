@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-//        Solution solution = new Solution();
+        Solution solution = new Solution();
 //        var matrixA = solution.generateMatrix(10000);
 //        var matrixB = solution.generateMatrix(10000);
 //        int k = 5;
@@ -38,12 +38,12 @@ public class Main {
 //        System.out.println(Arrays.deepToString(parallelResult));
 //
 //
-//        CustomBenchmark benchmark = new CustomBenchmark(solution);
+        CustomBenchmark benchmark = new CustomBenchmark(solution);
 //
-//        benchmark.run();
+        benchmark.run();
 
 
-        org.openjdk.jmh.Main.main(args);
+ //       org.openjdk.jmh.Main.main(args);
     }
 
     public static void prettyPrint(int[][] matrix){

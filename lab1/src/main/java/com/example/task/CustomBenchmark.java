@@ -9,7 +9,7 @@ public class CustomBenchmark {
     private int[][] matrixB;
     private final int k = 5;
     private final Solution solution;
-    private final int[] sizes = {12000};
+    private final int[] sizes = {10000};
     private final int[] threadNum = {1, 2, 4, 8, 16, 32, 64, 128, 256};
 
     public CustomBenchmark(Solution solution){
@@ -22,9 +22,10 @@ public class CustomBenchmark {
     }
 
     public void run(){
+        double time;
         for(int size: sizes){
             setup(size);
-            double time = bench(()->solution.executeSequentially(matrixA, matrixB, k));
+            time = bench(()->solution.executeSequentially(matrixA, matrixB, k));
             System.out.printf("Sequential avg time for size=%d is %.2f ms %n", size, time/1000);
             for(int threads:threadNum){
                 time = bench(()->solution.executeParallel(matrixA, matrixB, k, threads));
@@ -48,7 +49,7 @@ public class CustomBenchmark {
         List<Long> times = new ArrayList<>();
         for(int i = 0; i<iter;i++){
             start = System.nanoTime();
-            result = solution.executeSequentially(matrixA, matrixB, k);
+            runnable.run();
             end = System.nanoTime();
             long time = end-start;
             times.add(time);
