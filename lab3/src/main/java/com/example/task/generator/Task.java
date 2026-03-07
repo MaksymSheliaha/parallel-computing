@@ -18,4 +18,9 @@ public record Task(int id, int origin, int bound) implements Callable<String> {
         }
         return "Task " + id + " done with result " + a + b;
     }
+
+    @Override
+    public String toString() {
+        return "Task #" + id;
+    }
 }

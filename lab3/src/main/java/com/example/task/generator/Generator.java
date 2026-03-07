@@ -11,8 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Generator extends MyThread {
 
     public static final AtomicBoolean stopped = new AtomicBoolean(false);
-    private static final int MIN_TIMEOUT = 0;
-    private static final int MAX_TIMEOUT = 1;
     private static final AtomicInteger counter = new AtomicInteger(0);
     private final Random rand = new Random();
 
@@ -29,8 +27,8 @@ public class Generator extends MyThread {
     public void run(){
         while(!stopped.get()){
             try {
-                collector.addResult(pool.execute(new Task(counter.getAndIncrement(), MIN_TIMEOUT, 3)));
-                Thread.sleep(rand.nextInt(MIN_TIMEOUT, MAX_TIMEOUT));
+                collector.addResult(pool.execute(new Task(counter.getAndIncrement(), 500, 1000)));
+                Thread.sleep(rand.nextInt(300, 1100));
             } catch (Exception e){
                 throw new RuntimeException(e);
             }

@@ -1,11 +1,18 @@
 package com.example.task;
 
-public class Queue {
+import java.util.ArrayList;
+import java.util.List;
+
+class Queue {
 
     private final Work[] buffer;
     private int head = 0;
     private int tail = 0;
     private int count = 0;
+    private List<Long> fullDurations = new ArrayList<>();
+    private List<Long> emptyDurations = new ArrayList<>();
+    private volatile long fullStart;
+    private volatile long emptyStart;
 
     public Queue(int size){
         if (size<1){
@@ -19,9 +26,14 @@ public class Queue {
             throw new IllegalStateException("Queue is empty");
         }
 
+        if(isFull()) {
+            fullDurations.add(System.nanoTime() - fullStart);
+        }
+
         Work work = buffer[head];
         head = (head+1)%buffer.length;
         count--;
+        if(isEmpty()) emptyStart = System.nanoTime();
         return work;
     }
 
@@ -30,9 +42,14 @@ public class Queue {
             throw new IllegalStateException("Queue is full");
         }
 
+        if(isEmpty()) {
+            emptyDurations.add(System.nanoTime() - emptyStart);
+        }
+
         buffer[tail] = task;
         tail = (tail+1)% buffer.length;
         count++;
+        if(isFull()) fullStart = System.nanoTime();
         return true;
     }
 
@@ -41,6 +58,14 @@ public class Queue {
     }
 
     public boolean isFull(){
-        return count== buffer.length;
+        return count == buffer.length;
+    }
+
+    public List<Long> getFullDurations(){
+        return fullDurations;
+    }
+
+    public List<Long> getEmptyDurations(){
+        return emptyDurations;
     }
 }

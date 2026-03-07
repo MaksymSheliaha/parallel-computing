@@ -1,14 +1,20 @@
 package com.example.task;
 
 import com.example.task.custom.CustomFuture;
-import com.example.task.generator.Task;
+
+import java.util.concurrent.Callable;
 
 
-public record Work(Task task, CustomFuture future) implements Runnable {
+public record Work(Callable<String> task, CustomFuture future) implements Runnable {
     @Override
     public void run() {
         future.markStarted();
-        var result = task.call();
-        future.set(result);
+        try {
+            String result = task.call();
+            future.set(result);
+
+        } catch (Exception e) {
+            future.error();
+        }
     }
 }

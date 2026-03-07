@@ -19,4 +19,12 @@ public class MyThread extends Thread {
     public static int getCounter(){
         return counter.get();
     }
+
+    public void joinUnsafe(){
+        try {
+            join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

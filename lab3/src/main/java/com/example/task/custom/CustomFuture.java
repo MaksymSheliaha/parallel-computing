@@ -6,6 +6,7 @@ public class CustomFuture {
 
     private final AtomicBoolean isReady;
     private String payload;
+    private volatile Status status;
 
     private final long creationTime;
     private long startWorkingTime;
@@ -13,11 +14,13 @@ public class CustomFuture {
     public CustomFuture(){
         this.isReady = new AtomicBoolean(false);
         this.creationTime = System.nanoTime();
+        this.status = Status.CREATED;
     }
 
     public synchronized void set(String payload){
         isReady.set(true);
         this.payload = payload;
+        this.status = Status.DONE;
         notifyAll();
     }
 
@@ -40,11 +43,24 @@ public class CustomFuture {
         return isReady.get();
     }
 
+    public synchronized void error(){
+        this.status = Status.ERROR;
+    }
+
+    public Status getStatus(){
+        return status;
+    }
+
     public void markStarted(){
         startWorkingTime=System.nanoTime();
+        this.status = Status.INPROGRESS;
     }
 
     public long getWaitNanoTime(){
         return startWorkingTime-creationTime;
+    }
+
+    public enum Status{
+        CREATED, INPROGRESS, DONE, ERROR
     }
 }
