@@ -15,19 +15,21 @@ public class Main {
         Collector collector = new Collector();
         ThreadPool pool = new ThreadPool(5, 20);
         List<Generator> generators = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             generators.add(new Generator(pool, collector));
         }
 
         pool.start();
+        System.out.print("\n\nPool started\n\n");
         generators.forEach(Generator::start);
 
-        Thread.sleep(5*60000);
+        Thread.sleep(300000);
 
         Generator.stopped.set(true);
         generators.forEach(Generator::joinUnsafe);
 
-        pool.closeUnsafe();
+        pool.close();
+        System.out.print("\n\nPool Closed\n\n");
 
         showStatistic(collector.getResults(), pool);
     }

@@ -144,15 +144,15 @@ public class ThreadPool implements Closeable {
                             throw new RuntimeException(e);
                         }
                     }
-
+                    if(stopped) continue;
                     if(interrupted || (closed && queue.isEmpty())) break;
                     work = queue.pull();
+                    System.out.println("pool take " + work.task().toString());
                 }
 
-                if(work!=null) {
-                    work.run();
-                    System.out.println("pool finished "+work.task().toString());
-                }
+                work.run();
+                System.out.println("pool finished "+ work.task());
+
             }
 
             System.out.printf("Thread %d closed\n", Thread.currentThread().threadId());

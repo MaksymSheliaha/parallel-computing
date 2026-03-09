@@ -19,6 +19,7 @@ class Queue {
             throw new IllegalArgumentException();
         }
         buffer = new Work[size];
+        emptyStart = System.nanoTime();
     }
 
     public Work pull(){
