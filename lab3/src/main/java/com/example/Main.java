@@ -23,7 +23,7 @@ public class Main {
         System.out.print("\n\nPool started\n\n");
         generators.forEach(Generator::start);
 
-        Thread.sleep(300000);
+        Thread.sleep(120000);
 
         Generator.stopped.set(true);
         generators.forEach(Generator::joinUnsafe);

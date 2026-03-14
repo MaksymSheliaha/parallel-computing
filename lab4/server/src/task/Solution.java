@@ -1,39 +1,10 @@
-package com.example.task;
+package task;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 // Task: C = A + k*B
 public class Solution {
-
-    public int[][] generateMatrix(int size){
-        Random random = new Random();
-        var matrix = new int[size][size];
-
-        for(int[] row: matrix){
-            for(int i = 0; i<row.length;i++){
-                row[i] = random.nextInt(100);
-            }
-        }
-        return matrix;
-    }
-
-    public int[][] executeSequentially(int[][] a, int[][] b, int k) {
-        if(a==null || b==null || a.length!=b.length || a.length<1) throw new IllegalArgumentException();
-        int rows = a.length;
-        int cols = a[0].length;
-
-        int[][] result = new int[rows][cols];
-
-        for(int i = 0; i<rows; i++){
-            for(int j = 0; j<cols; j++){
-                result[i][j] = a[i][j] + k*b[i][j];
-            }
-        }
-
-        return result;
-    }
 
     public int[][] executeParallel(int[][] a, int[][] b, int k, int threadNum){
         if(a==null || b==null || a.length!=b.length || a.length<1) throw new IllegalArgumentException();

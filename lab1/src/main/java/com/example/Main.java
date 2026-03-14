@@ -1,8 +1,6 @@
 package com.example;
 
 
-
-import com.example.task.CustomBenchmark;
 import com.example.task.Solution;
 
 import java.io.IOException;
@@ -37,13 +35,13 @@ public class Main {
 //        var parallelResult = solution.executeParallel(matrixA, matrixB, k, 64);
 //        System.out.println(Arrays.deepToString(parallelResult));
 //
-//
-        CustomBenchmark benchmark = new CustomBenchmark(solution);
-//
-        benchmark.run();
+////
+//        CustomBenchmark benchmark = new CustomBenchmark(solution);
+////
+//        benchmark.run();
 
 
- //       org.openjdk.jmh.Main.main(args);
+        org.openjdk.jmh.Main.main(args);
     }
 
     public static void prettyPrint(int[][] matrix){
