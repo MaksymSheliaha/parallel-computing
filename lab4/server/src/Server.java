@@ -1,5 +1,7 @@
+import com.example.task.ThreadPool;
 import task.ConnectionProcessor;
 
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -12,11 +14,24 @@ public class Server {
     public static void main(){
 
         try(ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
-            ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()){
+            ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+            ThreadPool threadPool = new ThreadPool(8, 20)){
 
+            threadPool.start();
             while(active){
                 Socket socket = serverSocket.accept();
-               executor.execute(new ConnectionProcessor(socket));
+                try{
+                    threadPool.submit(new ConnectionProcessor(socket));
+                    //executor.execute(new ConnectionProcessor(socket));
+                } catch (Exception e) {
+                    try{
+                        System.err.println("Task rejected "+socket);
+                        socket.close();
+                    } catch (IOException ex) {
+                        System.err.println("Fail to close socket "+socket);
+                    }
+                }
+
             }
 
         } catch (Exception e) {

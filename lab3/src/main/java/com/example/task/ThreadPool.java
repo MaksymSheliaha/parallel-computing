@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.RejectedExecutionException;
 
 public class ThreadPool implements Closeable {
 
@@ -105,7 +106,14 @@ public class ThreadPool implements Closeable {
                 return result;
             }
         }
+    }
 
+    public void submit(Runnable task){
+        var result = execute(() -> {
+            task.run();
+            return null;
+        });
+        if(result==null) throw new RejectedExecutionException("Pool is full");
     }
 
     public synchronized List<Long> getQueueFullTimes(){
