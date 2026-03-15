@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Collector {
-    private final List<CustomFuture> results = new ArrayList<>();
+    private final List<CustomFuture<String>> results = new ArrayList<>();
 
-    public synchronized void addResult(CustomFuture result) {
+    public synchronized void addResult(CustomFuture<String> result) {
         results.add(result);
     }
 
-    public synchronized List<CustomFuture> getResults(){
+    public synchronized List<CustomFuture<String>> getResults(){
         return results;
     }
 }

@@ -2,10 +2,10 @@ package com.example.task.custom;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class CustomFuture {
+public class CustomFuture<T> {
 
     private final AtomicBoolean isReady;
-    private String payload;
+    private T payload;
     private volatile Status status;
 
     private final long creationTime;
@@ -17,14 +17,14 @@ public class CustomFuture {
         this.status = Status.CREATED;
     }
 
-    public synchronized void set(String payload){
+    public synchronized void set(T payload){
         isReady.set(true);
         this.payload = payload;
         this.status = Status.DONE;
         notifyAll();
     }
 
-    public synchronized String tryGet(){
+    public synchronized T tryGet(){
         if(isReady()){
             return payload;
         }
@@ -32,7 +32,7 @@ public class CustomFuture {
         return null;
     }
 
-    public synchronized String get() throws InterruptedException {
+    public synchronized T get() throws InterruptedException {
         while (!isReady()){
             wait();
         }

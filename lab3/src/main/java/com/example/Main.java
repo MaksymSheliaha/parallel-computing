@@ -34,7 +34,7 @@ public class Main {
         showStatistic(collector.getResults(), pool);
     }
 
-    private static void showStatistic(List<CustomFuture> customFutures, ThreadPool pool){
+    private static void showStatistic(List<CustomFuture<String>> customFutures, ThreadPool pool){
         int declined = 0;
         int done = 0;
         int notFinished = 0;

@@ -91,14 +91,14 @@ public class ThreadPool implements Closeable {
         }
     }
 
-    public CustomFuture execute(Callable<String> task){
+    public <T> CustomFuture<T> execute(Callable<T> task){
         synchronized (queue){
             if(closed || !started) throw  new IllegalStateException();
             if(queue.isFull()){
                 System.out.println("pool decline "+task.toString());
                 return null;
             } else {
-                CustomFuture result = new CustomFuture();
+                CustomFuture<T> result = new CustomFuture<T>();
                 queue.push(new Work(task, result));
                 queue.notify();
                 System.out.println("pool except     "+task.toString());
