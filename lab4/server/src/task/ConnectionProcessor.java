@@ -29,7 +29,7 @@ public class ConnectionProcessor implements Runnable{
             outputStream = new DataOutputStream(socket.getOutputStream());
             processRequest();
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             System.err.println("Error while processing request from " + socket);
         } finally {
             try {

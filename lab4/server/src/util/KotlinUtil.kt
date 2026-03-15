@@ -28,13 +28,16 @@ fun waitUntilReady(input: DataInputStream, output: DataOutputStream) {
 
     while (true) {
 
-        Thread.sleep(500)
+        Thread.sleep(1000)
 
         output.writeByte(STATUS.toInt())
 
         when (input.readByte()) {
             READY -> return
-            NOT_READY -> continue
+            NOT_READY -> {
+                println("Result is not ready yet")
+                continue
+            }
             else -> error("Invalid status")
         }
     }

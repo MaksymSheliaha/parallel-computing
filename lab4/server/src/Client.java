@@ -1,3 +1,5 @@
+import task.Solution;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,20 +9,20 @@ import java.util.Random;
 
 import static util.Constants.*;
 import static util.Constants.CONNECT;
-import static util.Util.readMatrix;
-import static util.Util.sendMatrix;
+import static util.Util.*;
 
 
 public class Client {
 
-    static int rows = 5000;
-    static int cols = 5000;
-    static int k = 1;
+    static int rows = ROWS;
+    static int cols = COLS;
+    static int k = K;
     static int[][] matrixA = generateMatrix(rows, cols);
     static int[][] matrixB = generateMatrix(rows, cols);
-    static int threadNum = 8;
+    static int threadNum = THREAD_NUM;
     static DataInputStream inputStream;
     static DataOutputStream outputStream;
+    static Solution solution = new Solution();
 
 
     public static void main(){
@@ -91,9 +93,11 @@ public class Client {
 
         byte status = 0;
 
+        int[][] selfResult = solution.executeParallel(matrixA, matrixB, k, threadNum);
+
         try{
             do{
-                Thread.sleep(500);
+                Thread.sleep(100);
                 outputStream.writeByte(STATUS);
                 status = inputStream.readByte();
             } while(!isReady(status));
@@ -103,12 +107,17 @@ public class Client {
         }
 
         int[][] result = readMatrix(rows, cols, inputStream, outputStream);
-        printResults(matrixA, matrixB, result);
+        System.out.println("Result received");
+        System.out.println(compareResults(selfResult, result));
+        //printResults(matrixA, matrixB, result);
     }
 
     private static boolean isReady(byte status){
 
-        if(status == NOT_READY) return false;
+        if(status == NOT_READY) {
+            System.out.println("Result is not ready yet");
+            return false;
+        }
         if(status == READY) return true;
 
         throw new IllegalStateException();

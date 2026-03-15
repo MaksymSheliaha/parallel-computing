@@ -12,10 +12,10 @@ import kotlin.random.Random
 
 fun main() {
 
-    val rows = 5000
-    val cols = 5000
-    val k = 1
-    val threadNum = 8
+    val rows = ROWS
+    val cols = COLS
+    val k = K
+    val threadNum = THREAD_NUM
 
     val matrixA = generateMatrix(rows, cols)
     val matrixB = generateMatrix(rows, cols)
@@ -66,8 +66,8 @@ fun makeRequest(
     waitUntilReady(input, output)
 
     val result = readMatrix(rows, cols, input, output)
-
-    printResults(matrixA, matrixB, k, result)
+    println("Result received")
+    //printResults(matrixA, matrixB, k, result)
 }
 
 fun printResults(a: Array<IntArray>, b: Array<IntArray>, k: Int, result: Array<IntArray>) {

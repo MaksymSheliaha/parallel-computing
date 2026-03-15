@@ -3,6 +3,7 @@ package util;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import static util.Constants.ERROR;
 import static util.Constants.RECEIVED;
@@ -22,12 +23,20 @@ public class Util {
 
     public static int[][] readMatrix(int rows, int cols, DataInputStream inputStream, DataOutputStream outputStream) throws IOException {
         try{
-            int[][] buffer = new int[rows][cols];
-            for(int i = 0; i<rows; i++){
-                readRow(buffer, i, cols, inputStream);
+            byte[] bytes = inputStream.readNBytes(rows * cols * Integer.BYTES);
+
+            ByteBuffer bb = ByteBuffer.wrap(bytes);
+
+            int[][] matrix = new int[rows][cols];
+
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    matrix[r][c] = bb.getInt();
+                }
             }
+
             outputStream.writeByte(RECEIVED);
-            return buffer;
+            return matrix;
         } catch (IOException e){
             System.err.println("Error reading matrix. Try again");
             inputStream.readAllBytes();
@@ -47,11 +56,40 @@ public class Util {
         }
     }
 
-    public static void sendMatrix(int[][] matrix, DataOutputStream outputStream) throws IOException {
+    public static void sendMatrixOld(int[][] matrix, DataOutputStream outputStream) throws IOException {
         for(int[] row: matrix){
             for(int el: row){
                 outputStream.writeInt(el);
             }
         }
+    }
+
+    public static void sendMatrix(int[][] matrix, DataOutputStream out) throws IOException {
+
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+
+        ByteBuffer buffer = ByteBuffer.allocate(rows * cols * Integer.BYTES);
+
+        for (int[] row : matrix) {
+            for (int value : row) {
+                buffer.putInt(value);
+            }
+        }
+
+        out.write(buffer.array());
+    }
+
+    public static boolean compareResults(int[][] result1, int[][] result2){
+        for (int i = 0; i < result1.length; i++) {
+            for (int j = 0; j < result1[i].length; j++) {
+                if(result1[i][j]!=result2[i][j]){
+                    return false;
+                }
+            }
+        }
+
+        System.out.println("Results are equal");
+        return true;
     }
 }

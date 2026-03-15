@@ -4,6 +4,11 @@ public class Constants {
     public static final int SERVER_PORT = 1488;
     public static final String SERVER_HOST = "localhost";
 
+    public static int ROWS = 10000;
+    public static int COLS = 10000;
+    public static int K = 1;
+    public static int THREAD_NUM = 8;
+
     public static final byte DISCONNECT = 0x0;
     public static final byte CONNECT = 0x1;
     public static final byte RECEIVED = 0x2;
