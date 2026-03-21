@@ -32,7 +32,7 @@ public class Client {
             outputStream = new DataOutputStream(socket.getOutputStream());
             makeRequest();
         } catch (Exception e){
-            throw new RuntimeException();
+            e.printStackTrace();
         }
     }
 
