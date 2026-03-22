@@ -5,11 +5,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static util.Constants.ERROR;
-import static util.Constants.RECEIVED;
+import static util.Constants.*;
 
 public class Util {
-    public static int readInt(DataInputStream inputStream, DataOutputStream outputStream) throws IOException {
+    public static Integer readInt(DataInputStream inputStream, DataOutputStream outputStream) throws IOException {
         try{
             int result = inputStream.readInt();
             outputStream.writeByte(RECEIVED);
@@ -17,7 +16,7 @@ public class Util {
         } catch (IOException e){
             System.err.println("Error reading int. Try again");
             outputStream.writeByte(ERROR);
-            return readInt(inputStream, outputStream);
+            return null;
         }
     }
 
@@ -41,7 +40,7 @@ public class Util {
             System.err.println("Error reading matrix. Try again");
             inputStream.readAllBytes();
             outputStream.writeByte(ERROR);
-            return readMatrix(rows, cols, inputStream, outputStream);
+            return null;
         }
     }
 
@@ -65,7 +64,7 @@ public class Util {
     }
 
     public static void sendMatrix(int[][] matrix, DataOutputStream out) throws IOException {
-
+        out.writeByte(MATRIX_FLAG);
         int rows = matrix.length;
         int cols = matrix[0].length;
 

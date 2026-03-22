@@ -1,23 +1,31 @@
 package task;
 
+import util.Util;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import static util.Constants.*;
-import static util.Util.*;
+import static util.Util.readInt;
+import static util.Util.sendMatrix;
 
 public class ConnectionProcessor implements Runnable{
 
     private final Socket socket;
+    private final Data data;
+    private int errorCount = 0;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
 
     public ConnectionProcessor(Socket socket){
         this.socket=socket;
+        this.data = new Data();
     }
 
     @Override
@@ -29,7 +37,7 @@ public class ConnectionProcessor implements Runnable{
             outputStream = new DataOutputStream(socket.getOutputStream());
             processRequest();
         } catch (Exception e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             System.err.println("Error while processing request from " + socket);
         } finally {
             try {
@@ -41,7 +49,7 @@ public class ConnectionProcessor implements Runnable{
         }
     }
 
-    private void processRequest() throws IOException {
+    private void processRequest() throws IOException, ExecutionException, InterruptedException {
 
         byte connection = inputStream.readByte();
         if(connection == DISCONNECT){
@@ -53,57 +61,150 @@ public class ConnectionProcessor implements Runnable{
         outputStream.writeByte(CONNECT);
         System.out.println("Connection established");
 
-        int rows = readInt(inputStream, outputStream);
-        System.out.println("Num of rows in matrix: " +rows);
-        int cols = readInt(inputStream, outputStream);
-        System.out.println("Num of cols in matrix: " +cols);
-
-        int[][] matrixA = readMatrix(rows, cols, inputStream, outputStream);
-        System.out.println("Matrix A received");
-
-        int[][] matrixB = readMatrix(rows, cols, inputStream, outputStream);
-        System.out.println("Matrix B received");
-
-        int k = readInt(inputStream, outputStream);
-        System.out.println("Coefficient k received: " +k);
-
-        int threadNum = readInt(inputStream, outputStream);
-        System.out.println("Num of threads received: " +threadNum);
-
-        Future<int[][]> taskFuture = submitTask(matrixA, matrixB, k, threadNum);
-        System.out.printf("Task from socket %s submitted\n", socket);
-
-        waitResult(taskFuture);
+        while(processData()){}
+        outputStream.writeByte(DISCONNECT);
     }
 
-    private Future<int[][]> submitTask(int[][] a, int[][] b, int k, int threadNum){
-        Solution solution = new Solution();
-        return CompletableFuture.supplyAsync(()->solution.executeParallel(a, b, k, threadNum));
-    }
-
-    private void waitResult(Future<int[][]> taskFuture) throws IOException {
-        while(true) {
-            byte readByte = inputStream.readByte();
-            if (readByte == ERROR || readByte == DISCONNECT) {
-                taskFuture.cancel(true);
-                return;
+    private boolean processData() throws IOException, ExecutionException, InterruptedException {
+        byte flag = inputStream.readByte();
+        switch (flag){
+            case DISCONNECT, RECEIVED -> {
+                return false;
             }
-            if (readByte != STATUS) {
-                outputStream.writeByte(ERROR);
+            case ROW_FLAG -> {
+                Integer rows = readInt(inputStream, outputStream);
+                if(rows == null){
+                    errorCount++;
+                } else {
+                    data.rows=rows;
+                    System.out.println("Row number received");
+                }
             }
-
-            if(!taskFuture.isDone()){
-                outputStream.writeByte(NOT_READY);
-            } else{
-                outputStream.writeByte(READY);
-                break;
+            case COL_FLAG -> {
+                Integer cols = readInt(inputStream, outputStream);
+                if(cols == null){
+                    errorCount++;
+                } else {
+                    data.cols=cols;
+                    System.out.println("Col number received");
+                }
+            }
+            case K_FLAG -> {
+                Integer k = readInt(inputStream, outputStream);
+                if(k == null){
+                    errorCount++;
+                } else {
+                    data.k=k;
+                    System.out.println("K received");
+                }
+            }
+            case THREADS_FLAG -> {
+                Integer threads = readInt(inputStream, outputStream);
+                if(threads == null){
+                    errorCount++;
+                } else {
+                    data.threads=threads;
+                    System.out.println("Thread num received");
+                }
+            }
+            case MATRIX_FLAG -> readMatrix();
+            case SUBMIT_TASK -> submitTask();
+            case STATUS -> statusRequest();
+            case GET_RESULT -> returnResult();
+            case ERROR ->{
+                System.err.println("Error from client received");
+                errorCount++;
+            }
+            default -> {
+                inputStream.readAllBytes();
+                errorCount++;
             }
         }
 
-        do{
-            sendMatrix(taskFuture.resultNow(), outputStream);
-            System.out.println("Result matrix sent");
-        } while (inputStream.readByte() != RECEIVED);
+        return errorCount<MAX_ERRORS;
+    }
 
+    private void statusRequest() throws IOException {
+        if(data.taskFuture == null){
+            errorCount++;
+            return;
+        } else if(!data.taskFuture.isDone()){
+            outputStream.writeByte(NOT_READY);
+        } else{
+            outputStream.writeByte(READY);
+        }
+        System.out.println("Status request processed");
+    }
+
+    private void readMatrix() throws IOException {
+        if(data.rows == 0 || data.cols == 0){
+            errorCount++;
+            return;
+        }
+
+        var matrix = Util.readMatrix(data.rows, data.cols, inputStream, outputStream);
+        if(matrix == null) {
+            errorCount++;
+            return;
+        }
+        System.out.println("Matrix read successfully");
+        if(data.matrixA == null){
+            data.matrixA = matrix;
+        } else if (data.matrixB == null) {
+            data.matrixB = matrix;
+        } else{
+            System.out.println("Received matrix is ignored");
+        }
+    }
+
+
+    private void submitTask() throws IOException {
+        if(data.matrixA==null || data.matrixB==null){
+            errorCount++;
+            return;
+        }
+
+        Future<int[][]> result;
+        if(data.threads>1){
+            result = CompletableFuture.supplyAsync(()->new Solution().executeParallel(data.matrixA, data.matrixB, data.k, data.threads));
+        } else{
+            result = CompletableFuture.supplyAsync(()->new Solution().executeSequentially(data.matrixA, data.matrixB, data.k));
+        }
+        data.taskFuture = result;
+        System.out.println("Task submitted");
+        outputStream.writeByte(RECEIVED);
+    }
+
+    private void returnResult() throws ExecutionException, InterruptedException, IOException {
+        var result = data.taskFuture.get();
+        sendMatrix(result, outputStream);
+        System.out.println("Result matrix sent");
+//        printResults(data.matrixA, data.matrixB, result);
+    }
+
+    private void printResults(int[][] a, int[][] b, int[][] result){
+        printMatrix(a);
+        System.out.println("+");
+        System.out.println(data.k+" * ");
+        printMatrix(b);
+        System.out.println("=");
+        printMatrix(result);
+
+    }
+
+    private static void printMatrix(int[][] matrix){
+        for(var row: matrix){
+            System.out.println(Arrays.toString(row));
+        }
+    }
+
+    private static class Data{
+        int rows;
+        int cols;
+        int k = 1;
+        int threads;
+        int[][] matrixA;
+        int[][] matrixB;
+        Future<int[][]> taskFuture;
     }
 }

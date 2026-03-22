@@ -54,20 +54,31 @@ fun makeRequest(
         else -> error("Unexpected status")
     }
 
-    sendIntWithAck(rows, output, input, "Rows")
-    sendIntWithAck(cols, output, input, "Cols")
+    sendIntWithAck(rows, output, input, "Rows", ROW_FLAG)
+    sendIntWithAck(cols, output, input, "Cols", COL_FLAG)
 
     sendMatrixWithAck(matrixA, output, input, "Matrix A")
     sendMatrixWithAck(matrixB, output, input, "Matrix B")
 
-    sendIntWithAck(k, output, input, "K")
-    sendIntWithAck(threadNum, output, input, "Thread num")
+    sendIntWithAck(k, output, input, "K", K_FLAG)
+    sendIntWithAck(threadNum, output, input, "Thread num", THREADS_FLAG)
+
+    var response:Byte
+    do {
+        output.writeByte(SUBMIT_TASK.toInt())
+
+        response = input.readByte()
+        if (response == DISCONNECT) return
+        println("task submitted")
+    } while (response != RECEIVED)
 
     waitUntilReady(input, output)
-
+    output.writeByte(GET_RESULT.toInt())
+    response = input.readByte()
+    if(response!=MATRIX_FLAG) throw Exception("Ups")
     val result = readMatrix(rows, cols, input, output)
     println("Result received")
-    //printResults(matrixA, matrixB, k, result)
+    printResults(matrixA, matrixB, k, result)
 }
 
 fun printResults(a: Array<IntArray>, b: Array<IntArray>, k: Int, result: Array<IntArray>) {

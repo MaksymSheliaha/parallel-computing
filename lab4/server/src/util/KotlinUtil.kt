@@ -6,8 +6,9 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 
 
-fun sendIntWithAck(value: Int, output: DataOutputStream, input: DataInputStream, name: String) {
+fun sendIntWithAck(value: Int, output: DataOutputStream, input: DataInputStream, name: String, flag:Byte) {
     do {
+        output.writeByte(flag.toInt())
         output.writeInt(value)
     } while (input.readByte() != RECEIVED)
 

@@ -48,4 +48,19 @@ public class Solution {
         });
     }
 
+    public int[][] executeSequentially(int[][] a, int[][] b, int k) {
+        if(a==null || b==null || a.length!=b.length || a.length<1) throw new IllegalArgumentException();
+        int rows = a.length;
+        int cols = a[0].length;
+
+        int[][] result = new int[rows][cols];
+
+        for(int i = 0; i<rows; i++){
+            for(int j = 0; j<cols; j++){
+                result[i][j] = a[i][j] + k*b[i][j];
+            }
+        }
+
+        return result;
+    }
 }
