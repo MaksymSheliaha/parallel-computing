@@ -4,10 +4,10 @@ public class Constants {
     public static final int SERVER_PORT = 8841;
     public static final String SERVER_HOST = "fe80::5fdc:12f6:3534:6b02%17";
 
-    public static int ROWS = 5;
-    public static int COLS = 5;
+    public static int ROWS = 5000;
+    public static int COLS = 5000;
     public static int K = 1;
-    public static int THREAD_NUM = 8;
+    public static int THREAD_NUM = 4;
     public static int MAX_ERRORS = 5;
 
     public static final byte DISCONNECT = 0x0;

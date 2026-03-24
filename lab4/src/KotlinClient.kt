@@ -78,7 +78,7 @@ fun makeRequest(
     if(response!=MATRIX_FLAG) throw Exception("Ups")
     val result = readMatrix(rows, cols, input, output)
     println("Result received")
-    printResults(matrixA, matrixB, k, result)
+//    printResults(matrixA, matrixB, k, result)
 }
 
 fun printResults(a: Array<IntArray>, b: Array<IntArray>, k: Int, result: Array<IntArray>) {

@@ -32,6 +32,7 @@ class Queue {
         }
 
         Work work = buffer[head];
+        buffer[head] = null;
         head = (head+1)%buffer.length;
         count--;
         if(isEmpty()) emptyStart = System.nanoTime();

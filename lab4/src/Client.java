@@ -136,6 +136,7 @@ public class Client {
         } while (response!=MATRIX_FLAG);
         int[][] result = readMatrix(rows, cols, inputStream, outputStream);
         System.out.println("Result received");
+//        outputStream.writeByte(DISCONNECT);
         System.out.println(compareResults(selfResult, result));
 //        printResults(matrixA, matrixB, result);
     }
