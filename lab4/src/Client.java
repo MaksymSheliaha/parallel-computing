@@ -93,21 +93,21 @@ public class Client {
 
         System.out.println("Both matrix sent: ");
 
-//        do{
-//            outputStream.writeByte(K_FLAG);
-//            outputStream.writeInt(k);
-//            response = inputStream.readByte();
-//            if(response==DISCONNECT) return;
-//        } while (response != RECEIVED);
-//        System.out.println("K sent: "+k);
+        do{
+            outputStream.writeByte(K_FLAG);
+            outputStream.writeInt(k);
+            response = inputStream.readByte();
+            if(response==DISCONNECT) return;
+        } while (response != RECEIVED);
+        System.out.println("K sent: "+k);
 
-//        do{
-//            outputStream.writeByte(THREADS_FLAG);
-//            outputStream.writeInt(threadNum);
-//            response = inputStream.readByte();
-//            if(response==DISCONNECT) return;
-//        } while (response != RECEIVED);
-//        System.out.println("Thread num sent: "+threadNum);
+        do{
+            outputStream.writeByte(THREADS_FLAG);
+            outputStream.writeInt(threadNum);
+            response = inputStream.readByte();
+            if(response==DISCONNECT) return;
+        } while (response != RECEIVED);
+        System.out.println("Thread num sent: "+threadNum);
 
         do{
             outputStream.writeByte(SUBMIT_TASK);

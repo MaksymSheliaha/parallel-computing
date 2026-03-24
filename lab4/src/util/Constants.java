@@ -2,7 +2,7 @@ package util;
 
 public class Constants {
     public static final int SERVER_PORT = 8841;
-    public static final String SERVER_HOST = "192.168.31.26";
+    public static final String SERVER_HOST = "fe80::5fdc:12f6:3534:6b02%17";
 
     public static int ROWS = 5;
     public static int COLS = 5;

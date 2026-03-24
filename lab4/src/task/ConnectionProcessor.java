@@ -73,7 +73,7 @@ public class ConnectionProcessor implements Runnable{
             }
             case ROW_FLAG -> {
                 Integer rows = readInt(inputStream, outputStream);
-                if(rows == null){
+                if(rows == null || data.matrixA!=null){
                     errorCount++;
                 } else {
                     data.rows=rows;
@@ -82,7 +82,7 @@ public class ConnectionProcessor implements Runnable{
             }
             case COL_FLAG -> {
                 Integer cols = readInt(inputStream, outputStream);
-                if(cols == null){
+                if(cols == null || data.matrixA!=null){
                     errorCount++;
                 } else {
                     data.cols=cols;
