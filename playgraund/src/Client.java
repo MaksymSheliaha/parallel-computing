@@ -58,7 +58,7 @@ public class Client {
         outputStream.write(nameBytes);
         System.out.println("Not encrypted request sent: " + Arrays.toString(nameBytes));
 
-//        readResponse(inputStream);
+        readResponse(inputStream);
 
         outputStream.writeByte(ENCRYPTED_REQUEST);
         byte[] encrypted = Encryptor.encrypt(name);
