@@ -7,7 +7,7 @@ public class Constants {
     public static int ROWS = 5000;
     public static int COLS = 5000;
     public static int K = 1;
-    public static int THREAD_NUM = 4;
+    public static int THREAD_NUM = 4     ;
     public static int MAX_ERRORS = 5;
 
     public static final byte DISCONNECT = 0x0;
