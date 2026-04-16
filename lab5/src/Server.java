@@ -1,3 +1,5 @@
+import task.ConnectionProcessor;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -16,7 +18,7 @@ public class Server {
             while(active){
                 Socket socket = serverSocket.accept();
                 try{
-                    executor.execute(new task.ConnectionProcessor(socket));
+                    executor.execute(new ConnectionProcessor(socket));
                 } catch (Exception e) {
                     try{
                         System.err.println("Task rejected "+socket);

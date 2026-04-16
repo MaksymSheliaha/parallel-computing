@@ -8,4 +8,5 @@ public class Constants {
     public static final String ERROR_STATUS = "HTTP/1.0 500 Internal Server Error\r\n";
     public static final String CONTENT_TYPE = "Content-Type: text/html; charset=UTF-8\r\n";
     public static final String RESOURCES = "resources";
+    public static final String NOT_FOUND_PATH = RESOURCES + "/not_found.html";
 }

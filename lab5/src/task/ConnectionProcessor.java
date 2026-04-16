@@ -7,6 +7,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import static util.Constants.*;
@@ -51,10 +52,17 @@ public class ConnectionProcessor implements Runnable{
 
         // Parse the path (e.g., "GET /home HTTP/1.1" -> "/home")
         String[] parts = requestLine.split(" ");
+        String method = parts[0];
+        if(!Objects.equals(method, "GET")) {
+            sendNotFound();
+            return;
+        }
         String path = parts[1];
 
-        path = path.substring(1);
-        path = RESOURCES + "/" + (path.endsWith(".html") ? path : path + ".html");
+        if(path.equals("/") || path.isBlank()) {
+            path = "/index.html";
+        }
+        path = RESOURCES + (path.endsWith(".html") ? path : path + ".html");
         try{
             String responseBody = Files.readString(Paths.get(path));
             sendOk(responseBody);
@@ -68,7 +76,14 @@ public class ConnectionProcessor implements Runnable{
 
     private void sendNotFound() {
         try {
+            LocalDateTime now = LocalDateTime.now();
+            String body = Files.readString(Paths.get(NOT_FOUND_PATH));
             output.write(NOT_FOUND_STATUS);
+            output.write("Date: " + now + "\r\n");
+            output.write(CONTENT_TYPE);
+            output.write("Content-Length: " + body.length() + "\r\n");
+            output.write("\r\n");
+            output.write(body);
             output.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
